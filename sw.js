@@ -1,5 +1,5 @@
 // Offline shell cache. Relay traffic (ntfy.sh, cross-origin) is never cached.
-const CACHE = "voice-phone-v31-dedupe";
+const CACHE = "voice-phone-v32-topics";
 const SHELL = ["./", "index.html", "app.js", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", (e) => {
@@ -16,7 +16,8 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== self.location.origin) return;
-  e.respondWith(fetch(e.request)
+  // no-cache: always revalidate with GitHub Pages (it sends max-age=600), so a redeploy shows up on reload.
+  e.respondWith(fetch(e.request, { cache: "no-cache" })
     .then((r) => { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); return r; })
     .catch(() => caches.match(e.request)));
 });
