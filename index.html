@@ -66,6 +66,8 @@
       <div><label for="s_sendAfterSilenceMs">Send after silence (ms)</label><input id="s_sendAfterSilenceMs" inputmode="numeric"></div>
     </div>
     <div class="row">
+      <div><label for="s_duplex">Conversation mode</label>
+        <select id="s_duplex"><option value="half">phone speaker: mic pauses while it talks, tap to interrupt</option><option value="full">headphones: talk over it to interrupt</option></select></div>
       <div><label for="s_bargeIn">Interrupt (barge-in)</label>
         <select id="s_bargeIn"><option value="auto">auto (VAD + words)</option><option value="speechstart">on speech start (headphones)</option><option value="off">off</option></select></div>
       <div><label for="s_vadThreshold">VAD threshold</label><input id="s_vadThreshold" inputmode="decimal"></div>
