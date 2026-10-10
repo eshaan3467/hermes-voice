@@ -1,5 +1,5 @@
-// Offline shell cache. Telegram traffic is a websocket and is never cached.
-const CACHE = "voice-phone-v1";
+// Offline shell cache. Relay traffic (ntfy.sh, cross-origin) is never cached.
+const CACHE = "voice-phone-v2-relay";
 const SHELL = ["./", "index.html", "app.js", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", (e) => {

@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'">
 <meta name="theme-color" content="#101418">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -42,41 +44,23 @@
   .btns button { flex:1; padding:12px; font-size:16px; border-radius:10px; border:0; background:#2a333d; color:var(--fg); }
   .btns button.primary { background:#2e86de; }
   small { color:var(--mut); }
+  .dot { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:8px; vertical-align:middle; background:#555; }
+  .dot.on { background:var(--on); } .dot.wait { background:#f1c40f; } .dot.off { background:var(--err); }
 </style>
 </head>
 <body>
 <header>
-  <h1>Voice</h1>
+  <h1><span id="dot" class="dot off" title="not connected"></span>Voice</h1>
   <button id="openSettings" type="button">Settings</button>
 </header>
 <div id="status" class="status">Loading…</div>
 <div id="log" aria-live="polite"></div>
 <button id="talk" type="button">Talk</button>
 
-<div id="ask" class="sheet" hidden>
-  <form id="askForm" class="panel">
-    <h2>Telegram login</h2>
-    <label id="askLabel" for="askInput">…</label>
-    <input id="askInput" autocomplete="off">
-    <div class="btns"><button class="primary" type="submit">Continue</button></div>
-    <small>Sent only to Telegram's servers. The session is stored on this device (localStorage).</small>
-  </form>
-</div>
-
 <div id="settings" class="sheet" hidden>
   <form id="settingsForm" class="panel">
     <h2>Settings</h2>
-    <small id="loggedIn"></small>
-    <div class="row">
-      <div><label for="s_apiId">api_id</label><input id="s_apiId" inputmode="numeric"></div>
-      <div><label for="s_apiHash">api_hash</label><input id="s_apiHash" autocomplete="off"></div>
-    </div>
-    <small>From my.telegram.org → API development tools.</small>
-    <div class="row">
-      <div><label for="s_chatId">Group chat id</label><input id="s_chatId"></div>
-      <div><label for="s_topicId">Voice topic id</label><input id="s_topicId" inputmode="numeric"></div>
-    </div>
-    <small>Topic id = the number at the end of a t.me/c/&lt;group&gt;/&lt;topic&gt; link.</small>
+    <small id="linkInfo"></small>
     <div class="row">
       <div><label for="s_lang">Language</label><input id="s_lang"></div>
       <div><label for="s_sendAfterSilenceMs">Send after silence (ms)</label><input id="s_sendAfterSilenceMs" inputmode="numeric"></div>
@@ -89,18 +73,14 @@
     <label><input type="checkbox" id="s_useVad">Use echo-cancelled mic level for barge-in</label>
     <div class="row">
       <div><label for="s_ack">Acknowledgement</label>
-        <select id="s_ack"><option value="earcon">chime</option><option value="speech">say phrase</option><option value="both">both</option><option value="off">off</option></select></div>
+        <select id="s_ack"><option value="earcon">chime (when the computer confirms)</option><option value="speech">say phrase</option><option value="both">both</option><option value="off">off</option></select></div>
       <div><label for="s_ackPhrase">Phrase</label><input id="s_ackPhrase"></div>
     </div>
     <div class="row">
       <div><label for="s_voiceName">Voice</label><select id="s_voiceName"></select></div>
       <div><label for="s_rate">Rate</label><input id="s_rate" inputmode="decimal"></div>
     </div>
-    <div class="row">
-      <div><label for="s_maxSpeakChars">Max chars to read</label><input id="s_maxSpeakChars" inputmode="numeric"></div>
-      <div><label for="s_sendPrefix">Prefix on sent text</label><input id="s_sendPrefix" placeholder="e.g. @YourBot "></div>
-    </div>
-    <label><input type="checkbox" id="s_skipProgress">Don't read tool-progress bubbles</label>
+    <div><label for="s_maxSpeakChars">Max chars to read</label><input id="s_maxSpeakChars" inputmode="numeric"></div>
     <label><input type="checkbox" id="s_debug">Show debug lines</label>
     <div class="btns">
       <button class="primary" type="submit">Save</button>
@@ -108,10 +88,12 @@
     </div>
     <div class="btns">
       <button type="button" id="resetDefaults">Reset defaults</button>
-      <button type="button" id="logout">Log out of Telegram</button>
+      <button type="button" id="newChat">New conversation</button>
+      <button type="button" id="forget">Forget this phone</button>
     </div>
   </form>
 </div>
+<small style="text-align:center;padding-bottom:6px">v<span id="ver"></span> · end-to-end encrypted relay</small>
 <script src="app.js"></script>
 </body>
 </html>
