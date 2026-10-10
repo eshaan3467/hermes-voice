@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101418">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Voice</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+  :root { color-scheme: dark; --bg:#101418; --fg:#e8edf2; --mut:#8a97a6; --on:#2ecc71; --sp:#3498db; --err:#e74c3c; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font: 16px/1.4 -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
+  body { display:flex; flex-direction:column; padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom); }
+  header { display:flex; justify-content:space-between; align-items:center; padding:10px 0; }
+  header h1 { font-size:18px; margin:0; font-weight:600; }
+  header button { background:none; border:1px solid #2a333d; color:var(--fg); border-radius:8px; padding:6px 10px; font-size:15px; }
+  .status { text-align:center; color:var(--mut); min-height:1.4em; margin:4px 0 10px; }
+  .status.on { color:var(--on); } .status.speak { color:var(--sp); } .status.err { color:var(--err); }
+  #log { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-bottom:8px; }
+  .line { padding:8px 10px; border-radius:10px; max-width:88%; white-space:pre-wrap; word-wrap:break-word; }
+  .line.me { align-self:flex-end; background:#1f3a2c; }
+  .line.agent { align-self:flex-start; background:#1d2a3a; }
+  .line.err { align-self:center; color:var(--err); font-size:14px; }
+  .line.dbg { align-self:center; color:var(--mut); font-size:12px; }
+  #talk { width:min(70vw,280px); height:min(70vw,280px); margin:10px auto 18px; border-radius:50%; border:0;
+    background:#24303c; color:var(--fg); font-size:34px; font-weight:700; letter-spacing:1px; touch-action:manipulation; }
+  #talk.on { background:#c0392b; box-shadow:0 0 0 10px rgba(192,57,43,.25); }
+  dialog, .sheet { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:flex-end; justify-content:center; z-index:10; }
+  .sheet[hidden] { display:none; }
+  .panel { background:#161c22; width:100%; max-width:560px; max-height:92vh; overflow-y:auto; border-radius:16px 16px 0 0; padding:16px; }
+  .panel h2 { margin:0 0 10px; font-size:18px; }
+  label { display:block; margin:10px 0 4px; color:var(--mut); font-size:14px; }
+  input, select { width:100%; padding:10px; font-size:16px; background:#0d1115; color:var(--fg); border:1px solid #2a333d; border-radius:8px; }
+  input[type=checkbox] { width:auto; transform:scale(1.3); margin-right:8px; }
+  .row { display:flex; gap:8px; } .row > * { flex:1; }
+  .btns { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .btns button { flex:1; padding:12px; font-size:16px; border-radius:10px; border:0; background:#2a333d; color:var(--fg); }
+  .btns button.primary { background:#2e86de; }
+  small { color:var(--mut); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Voice</h1>
+  <button id="openSettings" type="button">Settings</button>
+</header>
+<div id="status" class="status">Loading…</div>
+<div id="log" aria-live="polite"></div>
+<button id="talk" type="button">Talk</button>
+
+<div id="ask" class="sheet" hidden>
+  <form id="askForm" class="panel">
+    <h2>Telegram login</h2>
+    <label id="askLabel" for="askInput">…</label>
+    <input id="askInput" autocomplete="off">
+    <div class="btns"><button class="primary" type="submit">Continue</button></div>
+    <small>Sent only to Telegram's servers. The session is stored on this device (localStorage).</small>
+  </form>
+</div>
+
+<div id="settings" class="sheet" hidden>
+  <form id="settingsForm" class="panel">
+    <h2>Settings</h2>
+    <small id="loggedIn"></small>
+    <div class="row">
+      <div><label for="s_apiId">api_id</label><input id="s_apiId" inputmode="numeric"></div>
+      <div><label for="s_apiHash">api_hash</label><input id="s_apiHash" autocomplete="off"></div>
+    </div>
+    <small>From my.telegram.org → API development tools.</small>
+    <div class="row">
+      <div><label for="s_chatId">Group chat id</label><input id="s_chatId"></div>
+      <div><label for="s_topicId">Voice topic id</label><input id="s_topicId" inputmode="numeric"></div>
+    </div>
+    <small>Topic id = the number at the end of a t.me/c/&lt;group&gt;/&lt;topic&gt; link.</small>
+    <div class="row">
+      <div><label for="s_lang">Language</label><input id="s_lang"></div>
+      <div><label for="s_sendAfterSilenceMs">Send after silence (ms)</label><input id="s_sendAfterSilenceMs" inputmode="numeric"></div>
+    </div>
+    <div class="row">
+      <div><label for="s_bargeIn">Interrupt (barge-in)</label>
+        <select id="s_bargeIn"><option value="auto">auto (VAD + words)</option><option value="speechstart">on speech start (headphones)</option><option value="off">off</option></select></div>
+      <div><label for="s_vadThreshold">VAD threshold</label><input id="s_vadThreshold" inputmode="decimal"></div>
+    </div>
+    <label><input type="checkbox" id="s_useVad">Use echo-cancelled mic level for barge-in</label>
+    <div class="row">
+      <div><label for="s_ack">Acknowledgement</label>
+        <select id="s_ack"><option value="earcon">chime</option><option value="speech">say phrase</option><option value="both">both</option><option value="off">off</option></select></div>
+      <div><label for="s_ackPhrase">Phrase</label><input id="s_ackPhrase"></div>
+    </div>
+    <div class="row">
+      <div><label for="s_voiceName">Voice</label><select id="s_voiceName"></select></div>
+      <div><label for="s_rate">Rate</label><input id="s_rate" inputmode="decimal"></div>
+    </div>
+    <div class="row">
+      <div><label for="s_maxSpeakChars">Max chars to read</label><input id="s_maxSpeakChars" inputmode="numeric"></div>
+      <div><label for="s_sendPrefix">Prefix on sent text</label><input id="s_sendPrefix" placeholder="e.g. @YourBot "></div>
+    </div>
+    <label><input type="checkbox" id="s_skipProgress">Don't read tool-progress bubbles</label>
+    <label><input type="checkbox" id="s_debug">Show debug lines</label>
+    <div class="btns">
+      <button class="primary" type="submit">Save</button>
+      <button type="button" id="closeSettings">Close</button>
+    </div>
+    <div class="btns">
+      <button type="button" id="resetDefaults">Reset defaults</button>
+      <button type="button" id="logout">Log out of Telegram</button>
+    </div>
+  </form>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
