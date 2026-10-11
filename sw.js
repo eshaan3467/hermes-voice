@@ -1,5 +1,5 @@
 // Offline shell cache. Relay traffic (ntfy.sh, cross-origin) is never cached.
-const CACHE = "voice-phone-v32-topics";
+const CACHE = "voice-phone-v50-whisper";
 const SHELL = ["./", "index.html", "app.js", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", (e) => {
