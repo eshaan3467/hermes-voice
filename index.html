@@ -68,6 +68,7 @@
     <div class="row">
       <div><label for="s_duplex">Conversation mode</label>
         <select id="s_duplex"><option value="half">phone speaker: mic pauses while it talks, tap to interrupt</option><option value="full">headphones: talk over it to interrupt</option></select></div>
+      <label><input type="checkbox" id="s_voiceInterrupt">Interrupt by voice ("stop", "wait") while it talks. Turn off if replies get cut off.</label>
       <div><label for="s_bargeIn">Interrupt (barge-in)</label>
         <select id="s_bargeIn"><option value="auto">auto (VAD + words)</option><option value="speechstart">on speech start (headphones)</option><option value="off">off</option></select></div>
       <div><label for="s_vadThreshold">VAD threshold</label><input id="s_vadThreshold" inputmode="decimal"></div>
@@ -82,7 +83,7 @@
       <div><label for="s_voiceName">Voice</label><select id="s_voiceName"></select></div>
       <div><label for="s_rate">Rate</label><input id="s_rate" inputmode="decimal"></div>
     </div>
-    <div><label for="s_maxSpeakChars">Max chars to read</label><input id="s_maxSpeakChars" inputmode="numeric"></div>
+    <div><label for="s_maxSpeakChars">Max chars to read (0 = all)</label><input id="s_maxSpeakChars" inputmode="numeric"></div>
     <label><input type="checkbox" id="s_debug">Show debug lines</label>
     <div class="btns">
       <button class="primary" type="submit">Save</button>
